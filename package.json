@@ -1,0 +1,32 @@
+{
+  "name": "a-seal",
+  "version": "0.1.0",
+  "description": "Access Control Library (ACL)",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node node_modules/jasmine/bin/jasmine"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/philmander/a-seal.git"
+  },
+  "keywords": [
+    "acl",
+    "access",
+    "control",
+    "list",
+    "lists",
+    "permissions",
+    "security",
+    "seal"
+  ],
+  "author": "Phil Mander",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/philmander/a-seal/issues"
+  },
+  "homepage": "https://github.com/philmander/a-seal",
+  "devDependencies": {
+    "jasmine": "^2.4.1"
+  }
+}
