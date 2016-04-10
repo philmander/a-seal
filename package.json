@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Access Control Library (ACL)",
   "main": "src/index.js",
+  "engines" : { "node" : ">=0.10" },
   "scripts": {
     "test": "node node_modules/jasmine/bin/jasmine"
   },
