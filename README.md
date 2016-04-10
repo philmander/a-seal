@@ -21,7 +21,8 @@ var acl = require('a-seal')();
 acl.match('/protected-path').for('GET').thenAllow('user');
 acl.match('/protected-path').for('GET', 'POST').thenAllow('admin');
 
-//use `isAllowed(role, resource, action)` to determine if a request is allowed to access the resource with a given action:
+//use `isAllowed(role, resource, action)`...
+//to determine if a request is allowed to access the resource with a given action:
 acl.isAllowed('admin', '/protected-path', 'POST') //true
 acl.isAllowed('user', '/protected-path', 'POST') //false
 
@@ -31,9 +32,11 @@ acl.isAllowed('admin', '/protected-path', 'DELETE') //false
 
 ### Middleware
 
-A Seal can be used as Express middleware to authorize requests after authentication:
+A Seal can be used as [Express](http://expressjs.com/) middleware to authorize requests after 
+authentication with tools such as [Passport](http://passportjs.org/):
 
 ```javascript
+//mock authentication middleware
 app.use(function(req, res. next) {    
     req.user = {
         role: 'anon'
@@ -53,7 +56,7 @@ app.use('/protected-path', function(req, res, next) {
 
 app.use(function(err, req, res) {
     if(err.status === 403) {
-        //authorization failure
+        res.send('<p>Authorization failed</p>');
     }
 });
 ```
@@ -81,6 +84,8 @@ acl.match(/^\/my-path/) //match with regex (starting with /my-path)
 
 ### matchingContext.for(actions)
 
+Returns: object (matchingContext)
+
 Completes a matching context by adding one or more actions. When authorizing HTTP requests, for example, actions will 
 typically be HTTP methods.
 
@@ -91,7 +96,7 @@ Returns `object` (matchingContext)
 
 Type: `...string` | `Array`
 
-A list of actions as an array of strings or a list of strings as arguments.
+A list of permitted actions as an array of strings or a list of strings as arguments.
 
 #### Examples
 
@@ -112,7 +117,7 @@ Returns: acl instance
 
 Type: `...string` | `Array`
 
-A list of roles as an array of strings or a list of strings as arguments.
+A list of permitted roles as an array of strings or a list of strings as arguments.
 
 #### Examples
 
