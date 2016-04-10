@@ -2,7 +2,7 @@
 
 Access Control List (ACL) library for Node.JS
 
-<img src="mark-spencer.jpg" width="800">
+<img src="mark-spencer.jpg" width="500">
 
 ## Install
 ```
