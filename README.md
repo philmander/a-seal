@@ -18,7 +18,7 @@ var acl = require('a-seal')();
 
 //Compose rules of a 'resource', 'actions' and 'roles' using...
 //`match`, `for` and `thenAllow` respectively:
-acl.match('/protected-path').for('GET').thenAllow('user');
+acl.match('/protected-path').for('GET').thenAllow('user', 'admin');
 acl.match('/protected-path').for('GET', 'POST').thenAllow('admin');
 
 //use `isAllowed(role, resource, action)`...
