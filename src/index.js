@@ -1,18 +1,17 @@
 var Acl = function() {
+    this.ANY = '*';
     this._rules = [];
 };
 
-var defaultExport = function() {
+module.exports = function() {
     return new Acl();
 };
 
-defaultExport.middleware = function(acl) {
+Acl.prototype.middleware = function() {
     return function(req, res, next) {
-        var isAllowed = false;
         var err;
         if(req.user && req.user.role) {
-            isAllowed = acl.isAllowed(req.user.role, req.pathname, req.method);
-            if(isAllowed) {
+            if(this.isAllowed(req.user.role, req.pathname, req.method)) {
                 return next();
             } else {
                 err = new Error('User is not authorized');
@@ -23,10 +22,8 @@ defaultExport.middleware = function(acl) {
             err.status = 401;
         }
         return next(err);
-    };
+    }.bind(this);
 };
-
-module.exports = defaultExport;
 
 /**
  * Add a new rule, starting with the resource + action to match
@@ -36,51 +33,71 @@ module.exports = defaultExport;
  */
 Acl.prototype.match = function(resource, actions) {
 
-    //normalize
-    if(typeof actions === 'string') {
-        actions = [ actions ];
+    function argsAreStrings(args) {
+        
+        if(Array.isArray(args[0])) {
+            args = args[0];
+        }
+        
+        return Array.prototype.slice.call(args).every(function(val) {
+            return typeof val === 'string';
+        });
     }
+
+    //validate
     if(typeof resource === 'string') {
         resource = new RegExp('^' + resource.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&") + '$');
     }
     
-    //validate
-    if(!Array.isArray(actions)) {
-        throw new Error('Cannot do acl match, actions must be a string or array, but were: ' + typeof actions);
-    }
+    //normalize
     if(!(resource instanceof RegExp)) {
         throw new Error('Cannot do acl match, resources must be a string or regex');
     }
 
     return {
-        thenAllow: function(roles) {
-            //normalize
-            if(typeof roles === 'string') {
-                roles = [ roles ];
-            }
+        for: function(actions) {
             //validate
-            if(!Array.isArray(roles)) {
-                throw new Error('Cannot add acl rule, roles must be a string or array, but were: ' + typeof roles);
-            }
-            
-            //find existing rule
-            var rule = this._rules.filter(function (rule) {
-                return rule.resource.source === resource.source && 
-                       rule.actions.sort().toString() === actions.sort().toString();
-            })[0] || { _new: true };
-
-            //create or update
-            rule.resource = resource;
-            rule.actions = actions;
-            rule.roles = roles;
-
-            //add if new
-            if(rule._new) {
-                delete rule._new;
-                this._rules.push(rule);
+            if(!Array.isArray(actions) && !argsAreStrings(arguments)) {
+                throw new Error('Cannot add acl rule, actions must be strings or an array');
             }
 
-            return rule;
+            //normalize
+            if(!Array.isArray(actions)) {
+                actions = Array.prototype.slice.call(arguments);
+            }
+
+            return {
+                thenAllow: function(roles) {
+                    //validate
+                    if(!Array.isArray(roles) && !argsAreStrings(arguments)) {
+                        throw new Error('Cannot add acl rule, roles must be strings or an array');
+                    }
+
+                    //normalize
+                    if(!Array.isArray(roles)) {
+                        roles = Array.prototype.slice.call(arguments);
+                    }
+
+                    //find existing rule
+                    var rule = this._rules.filter(function (rule) {
+                            return rule.resource.source === resource.source &&
+                                rule.actions.sort().toString() === actions.sort().toString();
+                        })[0] || { _new: true };
+
+                    //create or update
+                    rule.resource = resource;
+                    rule.actions = actions;
+                    rule.roles = roles;
+
+                    //add if new
+                    if(rule._new) {
+                        delete rule._new;
+                        this._rules.push(rule);
+                    }
+
+                    return this;
+                }.bind(this)
+            }
         }.bind(this)
     };
 };
@@ -113,11 +130,11 @@ Acl.prototype.isAllowed = function(role, resource, action) {
         var matchResource = rule.resource.test(resource);
 
         //string star will match any otherwise find match in actions array
-        var matchAction = action === '*' || rule.actions.indexOf(action) > -1;
+        var matchAction = action === this.ANY || rule.actions.indexOf(action) > -1;
 
         //if the resource + action is match then allow or deny, given the role
         if(matchResource && matchAction) {
-            var matchRole = rule.roles.indexOf('*') > -1 || rule.roles.indexOf(role) > -1;
+            var matchRole = rule.roles.indexOf(this.ANY) > -1 || rule.roles.indexOf(role) > -1;
             return matchRole;
         }
     }
@@ -156,4 +173,11 @@ Acl.prototype.fromJSON = function(rules) {
     });
 
     this._rules = rules;
+}
+
+/**
+ * Clear all rules
+ */
+Acl.prototype.reset = function () {
+    this._rules = [];
 };
