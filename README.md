@@ -104,6 +104,9 @@ A list of permitted actions as an array of strings or a list of strings as argum
 acl.match('/my-path').for(['GET', 'POST' ]);
 acl.match('/my-path').for('GET', 'POST');
 acl.match('/my-path').for(...myActions);
+
+//match any action
+acl.match('/my-path').for(acl.ANY);
 ```
 
 ### matchingContext.thenAllow(roles)
@@ -125,6 +128,9 @@ A list of permitted roles as an array of strings or a list of strings as argumen
 acl.match('/my-path').for('GET').thenAllow([ 'user', 'anon' ]);
 acl.match('/my-path').for('GET').thenAllow('user', 'anon');
 acl.match('/my-path').for('GET').thenAllow(...myRoles);
+
+//match any role
+acl.match('/public').for('GET').thenAllow(acl.ANY);
 ```
 
 ### isAllowed(role, resource, action)
