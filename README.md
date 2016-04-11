@@ -11,6 +11,13 @@ npm install a-seal
 
 ## Usage
 
+Setting up an access control list consists of creating a list of rules. Each rule is composed with the process:
+**match** a resource **for** an action **then allow** roles.
+
+The **isAllowed()** function can then by used to check if a user, given their role, is authorized to access a resource.
+
+Although the examples on this page use HTTP, there is nothing HTTP specific about *A Seal*.
+
 ```javascript
 
 //create an acl instance
