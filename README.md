@@ -12,11 +12,11 @@ npm install a-seal
 ## Usage
 
 Setting up an access control list consists of creating a list of rules. Each rule is composed with the process:
-**match** a resource **for** an action **then allow** roles.
+
+* **match** a resource **for** action(s) **then allow** role(s).
 
 The **isAllowed()** function can then by used to check if a user, given their role, is authorized to access a resource.
-
-Although the examples on this page use HTTP, there is nothing HTTP specific about *A Seal*.
+A Seal creates a white-list of rules, so *isAllowed()* will return `false`, unless an exception has been created.
 
 ```javascript
 
@@ -26,7 +26,7 @@ var acl = require('a-seal')();
 //Compose rules of a 'resource', 'actions' and 'roles' using...
 //`match`, `for` and `thenAllow` respectively:
 acl.match('/protected-path').for('GET').thenAllow('user', 'admin');
-acl.match('/protected-path').for('GET', 'POST').thenAllow('admin');
+acl.match(/^\/protected-path/).for('GET', 'POST').thenAllow('admin');
 
 //use `isAllowed(role, resource, action)`...
 //to determine if a request is allowed to access the resource with a given action:
@@ -37,24 +37,22 @@ acl.isAllowed('user', '/protected-path', 'POST') //false
 acl.isAllowed('admin', '/protected-path', 'DELETE') //false
 ```
 
+<small>Although the examples on this page use HTTP, there is nothing HTTP specific about *A Seal*.</small>
+
 ### Middleware
 
 A Seal can be used as [Express](http://expressjs.com/) middleware to authorize requests after 
 authentication with tools such as [Passport](http://passportjs.org/):
 
 ```javascript
-//mock authentication middleware
-app.use(function(req, res. next) {    
-    req.user = {
-        role: 'anon'
-    };
-    next();
-});
+//authentication with Passport
+app.use(passport.authenticate('local'));
 
 var acl = require('a-seal')();
 acl.match('/protected-path').for('GET').thenAllow('user');
 acl.match('/protected-path').for('GET', 'POST').thenAllow('admin');
 
+//expects `req.user.role` to be defined
 app.use(acl.middleware());
 
 app.use('/protected-path', function(req, res, next) {
