@@ -1,5 +1,10 @@
 var Acl = function() {
+    
     this.ANY = '*';
+    this.GUEST_USER = {
+        role: 'guest'
+    };
+    
     this._rules = [];
 };
 
@@ -9,19 +14,15 @@ module.exports = function() {
 
 Acl.prototype.middleware = function() {
     return function(req, res, next) {
-        var err;
-        if(req.user && req.user.role) {
-            if(this.isAllowed(req.user.role, req.pathname, req.method)) {
-                return next();
-            } else {
-                err = new Error('User is not authorized');
-                err.status = 403;
-            }
+        var user = req.user || this.GUEST_USER;
+        var urlPath = require('url').parse(req.url).pathname;
+        if(this.isAllowed(user.role, urlPath, req.method)) {
+            return next();
         } else {
-            err = new Error('User must authenticate');
-            err.status = 401;
+            var err = new Error('User is not authorized to access this resource');
+            err.status = 403;
+            return next(err);
         }
-        return next(err);
     }.bind(this);
 };
 

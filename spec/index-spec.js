@@ -251,4 +251,48 @@ describe('Specs for A Seal', function() {
         allowed = acl.isAllowed('admin', '/json', 'BLAH');
         expect(allowed).toBe(false);
     });
+
+    it('authorizes requests with middleware', function () {
+
+        var acl = this.acl;
+
+        var req = {
+            method: 'GET'
+        };
+        var res = {};
+        var next = jasmine.createSpy('next');
+
+        acl.match('/public').for('GET').thenAllow('guest', 'admin');
+        acl.match('/secret').for('GET').thenAllow('admin');
+
+        var middleware = acl.middleware();
+
+        
+        req.url = '/public';
+        req.user = null;
+        middleware(req, res, next);
+        expect(next).toHaveBeenCalledTimes(1);
+        expect(next.calls.mostRecent().args.length).toBe(0);
+        next.calls.reset();
+        
+        req.user = { role: 'admin'};
+        middleware(req, res, next);
+        expect(next).toHaveBeenCalledTimes(1);
+        expect(next.calls.mostRecent().args.length).toBe(0);
+        next.calls.reset();
+
+        req.url = '/secret';
+        
+        req.user = { role : 'guest' };
+        middleware(req, res, next);
+        expect(next).toHaveBeenCalledTimes(1);
+        expect(next.calls.mostRecent().args[0].status).toBe(403);
+        next.calls.reset();
+
+        req.user = { role: 'admin'};
+        middleware(req, res, next);
+        expect(next).toHaveBeenCalledTimes(1);
+        expect(next.calls.mostRecent().args.length).toBe(0);
+        next.calls.reset();
+    });
 });

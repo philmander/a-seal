@@ -52,8 +52,8 @@ var acl = require('a-seal')();
 acl.match('/protected-path').for('GET').thenAllow('user');
 acl.match('/protected-path').for('GET', 'POST').thenAllow('admin');
 
-//expects `req.user.role` to be defined
-app.use(acl.middleware());
+//the `guest` option defaults `req.user.role` to 'guest'
+app.use(acl.middleware({ guest: true }));
 
 app.use('/protected-path', function(req, res, next) {
     res.send('<p>Authorized ok</p>');
@@ -160,6 +160,13 @@ Type: `string`
 ```javascript
 acl.isAllowed('admin', '/my-path', 'GET');
 ```
+
+### middleware(opts)
+
+Returns an Express middleware function that accepts `req`, `res` and `next` arguments.
+
+The role is checked against the ACL ruleset using the `isAllowed` function. If it returns false, it creates a 403
+error; if true the routing chain is allowed to continue.
 
 ## License
 
