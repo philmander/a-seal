@@ -52,8 +52,7 @@ var acl = require('a-seal')();
 acl.match('/protected-path').for('GET').thenAllow('user');
 acl.match('/protected-path').for('GET', 'POST').thenAllow('admin');
 
-//the `guest` option defaults `req.user.role` to 'guest'
-app.use(acl.middleware({ guest: true }));
+app.use(acl.middleware());
 
 app.use('/protected-path', function(req, res, next) {
     res.send('<p>Authorized ok</p>');
@@ -165,8 +164,21 @@ acl.isAllowed('admin', '/my-path', 'GET');
 
 Returns an Express middleware function that accepts `req`, `res` and `next` arguments.
 
-The role is checked against the ACL ruleset using the `isAllowed` function. If it returns false, it creates a 403
+The role is checked against the ACL ruleset using the `isAllowed` function. If it returns `false`, it creates a 403
 error; if true the routing chain is allowed to continue.
+
+If `req.role` is not defined, and a custom anonymous role is not provided, the role value will default to `guest`. 
+
+#### Params
+##### opts.anon
+
+Type: `string`
+
+The default role for users (anonymous users). This defaults to `'guest'`.
+
+```javascript
+app.use(acl.middleware({ anon: 'anonymous'});
+```
 
 ## License
 

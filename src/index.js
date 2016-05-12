@@ -1,7 +1,7 @@
 var Acl = function() {
     
     this.ANY = '*';
-    this.GUEST_USER = {
+    this.ANON_USER = {
         role: 'guest'
     };
     
@@ -12,9 +12,9 @@ module.exports = function() {
     return new Acl();
 };
 
-Acl.prototype.middleware = function() {
+Acl.prototype.middleware = function(opts) {
     return function(req, res, next) {
-        var user = req.user || this.GUEST_USER;
+        var user = req.user || (opts && typeof opts.anon === 'string' ? { role: opts.anon } : this.ANON_USER);
         var urlPath = require('url').parse(req.url).pathname;
         if(this.isAllowed(user.role, urlPath, req.method)) {
             return next();

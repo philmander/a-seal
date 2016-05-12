@@ -262,11 +262,10 @@ describe('Specs for A Seal', function() {
         var res = {};
         var next = jasmine.createSpy('next');
 
-        acl.match('/public').for('GET').thenAllow('guest', 'admin');
+        acl.match('/public').for('GET').thenAllow('foo', 'admin');
         acl.match('/secret').for('GET').thenAllow('admin');
 
-        var middleware = acl.middleware();
-
+        var middleware = acl.middleware({ anon: 'foo'});
         
         req.url = '/public';
         req.user = null;
@@ -283,7 +282,7 @@ describe('Specs for A Seal', function() {
 
         req.url = '/secret';
         
-        req.user = { role : 'guest' };
+        req.user = { role : 'foo' };
         middleware(req, res, next);
         expect(next).toHaveBeenCalledTimes(1);
         expect(next.calls.mostRecent().args[0].status).toBe(403);
