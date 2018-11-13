@@ -1,89 +1,84 @@
-describe('Specs for A Seal', function() {
 
-    beforeEach(function() {
-       this.acl = require('../src/index')(); 
+describe('A Seal', () => {
+
+    beforeEach(() => {
+       this.acl = require('./index')(); 
     });
-    afterEach(function () {
+
+    afterEach(() => {
        this.acl.reset(); 
     });
     
-    
-    it('matches and returns a thenAllow function', function() {
-        
-        var acl = this.acl;
+    it('matches and returns a allow function', () => {
+        const { acl } = this;
 
-        var obj = acl.match('/foo').for('GET');
-        expect(typeof obj.thenAllow === 'function').toBe(true);
+        let obj = acl.match('/foo').for('GET');
+        expect(typeof obj.allow === 'function').toBe(true);
 
         obj = acl.match('/foo').for([ 'GET' ]);
-        expect(typeof obj.thenAllow === 'function').toBe(true);
+        expect(typeof obj.allow === 'function').toBe(true);
 
         obj = acl.match(/^foo/).for([ 'GET' ]);
-        expect(typeof obj.thenAllow === 'function').toBe(true);
+        expect(typeof obj.allow === 'function').toBe(true);
 
         obj = acl.match(/^foo/).for('GET', 'POST');
-        expect(typeof obj.thenAllow === 'function').toBe(true);
+        expect(typeof obj.allow === 'function').toBe(true);
         
-        function callWithBadResource() {
+        const callWithBadResource = () => {
             acl.match(123);
         }
         expect(callWithBadResource).toThrow();
         
-        function callWithBadActions() {
+        const callWithBadActions = () => {
             acl.match(/ok/).for(undefined);
         }
         expect(callWithBadActions).toThrow();
     });
     
-    it('support chaining rules', function () {
-
-        var acl = this.acl
-            .match('/foo/bar?').for('GET').thenAllow('user')
-            .match(/\/foo\/bar$/).for('GET', 'POST').thenAllow([ 'user', 'admin' ]);
+    it('support labelling with scopes', () => {
+        var rule = this.acl
+            .match('/foo/bar?').for('GET').allow('user').as('READ_FOO');
         
-        expect(acl._rules[0].resource).toEqual(/^\/foo\/bar\?$/);
-        expect(acl._rules[0].actions).toEqual([ 'GET' ]);
-        expect(acl._rules[0].roles).toEqual([ 'user' ]);
+        expect(rule.resource).toEqual(/^\/foo\/bar\?$/);
+        expect(rule.actions).toEqual([ 'GET' ]);
+        expect(rule.roles).toEqual([ 'user' ]);
+        expect(rule.scope).toEqual('READ_FOO');
         
-        expect(acl._rules[1].resource).toEqual(/\/foo\/bar$/);
-        expect(acl._rules[1].actions).toEqual([ 'GET', 'POST' ]);
-        expect(acl._rules[1].roles).toEqual([ 'user', 'admin' ]);
     });
     
-    it('creates access control rules', function () {
+    it('creates access control rules', () => {
         var acl = this.acl;
         expect(acl._rules.length).toBe(0);
         
-        acl.match('/foo/bar?').for('GET').thenAllow('user');
+        acl.match('/foo/bar?').for('GET').allow('user');
         expect(acl._rules[0].resource).toEqual(/^\/foo\/bar\?$/);
         expect(acl._rules[0].actions).toEqual([ 'GET' ]);
         expect(acl._rules[0].roles).toEqual([ 'user' ]);
         expect(acl._rules.length).toBe(1);
         
-        acl.match(/\/foo\/bar$/).for('GET', 'POST').thenAllow([ 'user', 'admin' ]);
+        acl.match(/\/foo\/bar$/).for('GET', 'POST').allow([ 'user', 'admin' ]);
         expect(acl._rules[1].resource).toEqual(/\/foo\/bar$/);
         expect(acl._rules[1].actions).toEqual([ 'GET', 'POST' ]);
         expect(acl._rules[1].roles).toEqual([ 'user', 'admin' ]);
         expect(acl._rules.length).toBe(2);
         
         //overwrite existing rule
-        acl.match('/foo/bar?').for('GET').thenAllow('admin');
+        acl.match('/foo/bar?').for('GET').allow('admin');
         expect(acl._rules[0].resource).toEqual(/^\/foo\/bar\?$/);
         expect(acl._rules[0].actions).toEqual([ 'GET' ]);
         expect(acl._rules[0].roles).toEqual([ 'admin' ]);
         expect(acl._rules.length).toBe(2);
 
-        function callWithBadRole() {
-            acl.match(/\/foo\/bar$/, [ 'GET', 'POST' ]).thenAllow(true);
+        const callWithBadRole = () => {
+            acl.match(/\/foo\/bar$/, [ 'GET', 'POST' ]).allow(true);
         }
 
         expect(callWithBadRole).toThrow();
     });
     
-    it('checks if a role is allowed for a given resource and action', function () {
-        
-        var acl = this.acl;
-        var allowed;
+    it('checks if a role is allowed for a given resource and action', () => {
+        const { acl } = this;
+        let allowed;
         
         //RESOURCES
 
@@ -95,8 +90,8 @@ describe('Specs for A Seal', function() {
         expect(allowed).toBe(false);
         
         //add rules
-        acl.match('/string-resource').for('GET').thenAllow('admin');
-        acl.match(/^\/regex-resource/).for('GET').thenAllow('admin');
+        acl.match('/string-resource').for('GET').allow('admin');
+        acl.match(/^\/regex-resource/).for('GET').allow('admin');
         
         //test...
         allowed = acl.isAllowed('admin', '/string-resource', '*');
@@ -122,10 +117,10 @@ describe('Specs for A Seal', function() {
         expect(allowed).toBe(false);
 
         //add rules
-        acl.match('/actions-1').for('GET').thenAllow('admin');
-        acl.match('/actions-1').for('POST').thenAllow('admin');
-        acl.match('/actions-2').for([ 'GET', 'POST' ]).thenAllow('admin');
-        acl.match('/actions-3').for('GET', 'POST').thenAllow('admin');
+        acl.match('/actions-1').for('GET').allow('admin');
+        acl.match('/actions-1').for('POST').allow('admin');
+        acl.match('/actions-2').for([ 'GET', 'POST' ]).allow('admin');
+        acl.match('/actions-3').for('GET', 'POST').allow('admin');
         
         //test...
         allowed = acl.isAllowed('admin', '/actions-1', '*');
@@ -175,10 +170,10 @@ describe('Specs for A Seal', function() {
         expect(allowed).toBe(false);
 
         //add rules
-        acl.match('/roles').for('GET').thenAllow(acl.ANY);
-        acl.match('/roles').for('POST').thenAllow([ 'admin', 'user' ]);
-        acl.match('/roles').for('DELETE').thenAllow([ 'hacker' ]);
-        acl.match('/roles').for('PUT').thenAllow('hacker', 'cleaner');
+        acl.match('/roles').for('GET').allow(acl.ANY);
+        acl.match('/roles').for('POST').allow([ 'admin', 'user' ]);
+        acl.match('/roles').for('DELETE').allow([ 'hacker' ]);
+        acl.match('/roles').for('PUT').allow('hacker', 'cleaner');
         
         //test...
         allowed = acl.isAllowed('anon', '/roles', 'GET');
@@ -209,33 +204,32 @@ describe('Specs for A Seal', function() {
         expect(allowed).toBe(true);
 
         //bad args
-        function callWithBadRole() {
+        const callWithBadRole = () => {
             allowed = acl.isAllowed(undefind, '/args', 'GET');
         }
         expect(callWithBadRole).toThrow();
 
-        function callWithBadResource() {
+        const callWithBadResource = () => {
             allowed = acl.isAllowed('admin', undefined, 'GET');
         }
         expect(callWithBadResource).toThrow();
 
-        function callWithBadAction() {
+        const callWithBadAction = () => {
             allowed = acl.isAllowed('admin', '/args', undefined);
         }
         expect(callWithBadAction).toThrow();
         
     });
     
-    it('serializes a set or rules', function () {
-       
-        var acl = this.acl;
-        var allowed;
+    it('serializes a set or rules', () => {
+        const acl = this.acl;
+        let allowed;
 
-        acl.match('/json').for('GET').thenAllow('admin');
-        acl.match('/json').for('POST').thenAllow('admin');
-        acl.match('/json').for([ 'GET', 'POST' ]).thenAllow('admin');
+        acl.match('/json').for('GET').allow('admin');
+        acl.match('/json').for('POST').allow('admin');
+        acl.match('/json').for([ 'GET', 'POST' ]).allow('admin');
         
-        var json = acl.toJSON();
+        const json = acl.toJSON();
         this._rules = null;
         acl.fromJSON(json);
 
@@ -252,30 +246,31 @@ describe('Specs for A Seal', function() {
         expect(allowed).toBe(false);
     });
 
-    it('authorizes requests with middleware', function () {
+    it('authorizes requests with middleware', () => {
+        const { acl } = this;
 
-        var acl = this.acl;
-
-        var req = {
+        const req = {
             method: 'GET'
         };
-        var res = {};
-        var next = jasmine.createSpy('next');
+        const res = {};
+        const next = jasmine.createSpy('next');
 
-        acl.match('/public').for('GET').thenAllow('foo', 'admin');
-        acl.match('/secret').for('GET').thenAllow('admin');
+        acl.match('/public').for('GET').allow('foo', 'admin');
+        acl.match('/secret').for('GET').allow('admin').as('SECRET_GETTER');
 
-        var middleware = acl.middleware({ anon: 'foo'});
+        const middleware = acl.middleware({ anon: 'foo'});
         
         req.url = '/public';
         req.user = null;
         middleware(req, res, next);
+        expect(req.scope).toBeUndefined();
         expect(next).toHaveBeenCalledTimes(1);
         expect(next.calls.mostRecent().args.length).toBe(0);
         next.calls.reset();
         
         req.user = { role: 'admin'};
         middleware(req, res, next);
+        expect(req.scope).toBeUndefined();
         expect(next).toHaveBeenCalledTimes(1);
         expect(next.calls.mostRecent().args.length).toBe(0);
         next.calls.reset();
@@ -284,12 +279,14 @@ describe('Specs for A Seal', function() {
         
         req.user = { role : 'foo' };
         middleware(req, res, next);
+        expect(req.scope).toBeUndefined();
         expect(next).toHaveBeenCalledTimes(1);
         expect(next.calls.mostRecent().args[0].status).toBe(403);
         next.calls.reset();
 
         req.user = { role: 'admin'};
         middleware(req, res, next);
+        expect(req.scope).toBe('SECRET_GETTER');
         expect(next).toHaveBeenCalledTimes(1);
         expect(next.calls.mostRecent().args.length).toBe(0);
         next.calls.reset();

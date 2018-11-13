@@ -1,13 +1,13 @@
 {
   "name": "a-seal",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Access Control Library (ACL)",
   "main": "src/index.js",
   "engines": {
-    "node": ">=0.10"
+    "node": "6"
   },
   "scripts": {
-    "test": "node node_modules/jasmine/bin/jasmine"
+    "test": "node node_modules/jasmine/bin/jasmine src/*.spec.js"
   },
   "repository": {
     "type": "git",

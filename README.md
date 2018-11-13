@@ -13,20 +13,24 @@ npm install a-seal
 
 Setting up an access control list consists of creating a list of rules. Each rule is composed with the process:
 
-* **match** a resource **for** action(s) **then allow** role(s).
+* **match** a resource **for** action(s) then **allow** role(s).
 
 The **isAllowed()** function can then by used to check if a user, given their role, is authorized to access a resource.
 A Seal creates a white-list of rules, so *isAllowed()* will return `false`, unless an exception has been created.
 
 ```javascript
 
-//create an acl instance
-var acl = require('a-seal')();
+// Create an acl instance
+const acl = require('a-seal')();
 
-//Compose rules of a 'resource', 'actions' and 'roles' using...
-//`match`, `for` and `thenAllow` respectively:
-acl.match('/protected-path').for('GET').thenAllow('user', 'admin');
-acl.match(/^\/protected-path/).for('GET', 'POST').thenAllow('admin');
+// Compose rules of a 'resource', 'actions' and 'roles' using...
+// `match`, `for` and `allow` respectively:
+acl.match('/protected-path').for('GET').allow('user', 'admin');
+acl.match(/^\/protected-path/).for('GET', 'POST').allow('admin');
+
+// Optionally label the rule with a "scope" using an `as` clause
+
+acl.match(/^\/protected-path/).for('GET', 'POST').allow('admin').as('PROTECTED_WRITE');
 
 //use `isAllowed(role, resource, action)`...
 //to determine if a request is allowed to access the resource with a given action:
@@ -48,17 +52,18 @@ authentication with tools such as [Passport](http://passportjs.org/):
 //authentication with Passport
 app.use(passport.authenticate('local'));
 
-var acl = require('a-seal')();
-acl.match('/protected-path').for('GET').thenAllow('user');
-acl.match('/protected-path').for('GET', 'POST').thenAllow('admin');
+const acl = require('a-seal')();
+acl.match('/protected-path').for('GET').allow('user');
+acl.match('/protected-path').for('GET', 'POST').allow('admin').as('PROTECTED_WRITE);
 
 app.use(acl.middleware());
 
-app.use('/protected-path', function(req, res, next) {
-    res.send('<p>Authorized ok</p>');
+app.use('/protected-path', (req, res, next) => {
+    // the matched rule's "scope" label will be added to the request
+    res.send(`<p>Authorized ok with scope: ${req.scope}</p>`);
 });
 
-app.use(function(err, req, res) {
+app.use((err, req, res) => {
     if(err.status === 403) {
         res.send('<p>Authorization failed</p>');
     }
@@ -107,17 +112,16 @@ A list of permitted actions as an array of strings or a list of strings as argum
 ```javascript
 acl.match('/my-path').for(['GET', 'POST' ]);
 acl.match('/my-path').for('GET', 'POST');
-acl.match('/my-path').for(...myActions);
 
 //match any action
 acl.match('/my-path').for(acl.ANY);
 ```
 
-### matchingContext.thenAllow(roles)
+### matchingContext.allow(roles)
 
 Adds a new ACL rule by adding one or more roles to a matching context.
 
-Returns: acl instance
+Returns: `object` (rule)
 
 #### Params
 ##### roles
@@ -129,12 +133,28 @@ A list of permitted roles as an array of strings or a list of strings as argumen
 #### Examples
 
 ```javascript
-acl.match('/my-path').for('GET').thenAllow([ 'user', 'anon' ]);
-acl.match('/my-path').for('GET').thenAllow('user', 'anon');
-acl.match('/my-path').for('GET').thenAllow(...myRoles);
+acl.match('/my-path').for('GET').allow([ 'user', 'anon' ]);
+acl.match('/my-path').for('GET').allow('user', 'anon');
+acl.match('/my-path').for('GET').allow(...myRoles);
 
 //match any role
-acl.match('/public').for('GET').thenAllow(acl.ANY);
+acl.match('/public').for('GET').allow(acl.ANY);
+```
+
+### rule.as(scope)
+
+Labels this rule with a custom "scope"
+
+#### Params
+
+##### scope
+
+Type: `string`
+
+#### Examples
+
+```javascript
+acl.match('/my-path').for('POST').allow('user').as('user_create');
 ```
 
 ### isAllowed(role, resource, action)
