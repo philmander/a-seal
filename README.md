@@ -54,7 +54,7 @@ app.use(passport.authenticate('local'));
 
 const acl = require('a-seal')();
 acl.match('/protected-path').for('GET').allow('user');
-acl.match('/protected-path').for('GET', 'POST').allow('admin').as('PROTECTED_WRITE);
+acl.match('/protected-path').for('GET', 'POST').allow('admin').as('PROTECTED_WRITE');
 
 app.use(acl.middleware());
 
