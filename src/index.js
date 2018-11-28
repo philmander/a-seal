@@ -4,9 +4,7 @@ class Acl {
 
     constructor() {
         this.ANY = '*';
-        this.ANON_USER = {
-            role: 'guest'
-        };
+        this.ANON = 'guest';
         
         this._rules = [];
     }
@@ -133,8 +131,13 @@ class Acl {
      * @param {*} opts 
      */
     middleware(opts) {
+        const { 
+            challenges = {},
+            anon = this.ANON,
+        } = opts;
+        
         return function(req, res, next) {
-            const user = req.user || (opts && typeof opts.anon === 'string' ? { role: opts.anon } : this.ANON_USER);
+            const user = req.user || { role: anon };
             const { pathname: urlPath } = parseUrl(req.url);
             if(this.isAllowed(user.role, urlPath, req.method)) {
                 const { scope } = this._findRule(user.role, urlPath, req.method); 
@@ -143,8 +146,13 @@ class Acl {
                 }
                 return next();
             } else {
-                const err = new Error(`User "${user.role}" is not authorized to "${req.method}" to the resource "${urlPath}"`);
-                err.status = 403;
+                const msg = `User "${user.role}" is not authorized to "${req.method}" to the resource "${urlPath}"`;
+                const err = new Error(msg);
+                if(req.user.role in challenges) {
+                    err.challenge = challenges[req.user.role];
+                }
+                err.status = err.challenge ? 401 : 403;
+               
                 return next(err);
             }
         }.bind(this);

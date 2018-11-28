@@ -184,8 +184,11 @@ acl.isAllowed('admin', '/my-path', 'GET');
 
 Returns an Express middleware function that accepts `req`, `res` and `next` arguments.
 
-The role is checked against the ACL ruleset using the `isAllowed` function. If it returns `false`, it creates a 403
-error; if true the routing chain is allowed to continue.
+The role is checked against the ACL ruleset using the `isAllowed` function. If it returns `false`, it creates a an error with the `status` propery 403; if true the routing chain is allowed to continue.
+
+A 401 `status` error may also be created if the request is unauthorized and the user role matches
+a key in the provided `challenges` option. When the error is handled, the `challenges` value
+should be used to determine the value of a `WWW-Authenticate` response header.
 
 If `req.role` is not defined, and a custom anonymous role is not provided, the role value will default to `guest`. 
 
@@ -198,6 +201,16 @@ The default role for users (anonymous users). This defaults to `'guest'`.
 
 ```javascript
 app.use(acl.middleware({ anon: 'anonymous'});
+```
+
+##### opts.challenges
+
+Type: `object`
+
+A map of user roles to challenge values. 
+
+```javascript
+app.use(acl.middleware({ challenges: { guest: 'Basic'}});
 ```
 
 ## License

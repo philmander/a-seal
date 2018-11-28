@@ -258,7 +258,10 @@ describe('A Seal', () => {
         acl.match('/public').for('GET').allow('foo', 'admin');
         acl.match('/secret').for('GET').allow('admin').as('SECRET_GETTER');
 
-        const middleware = acl.middleware({ anon: 'foo'});
+        const challenges = {
+            nobody: 'Basic',
+        };
+        const middleware = acl.middleware({ anon: 'foo', challenges});
         
         req.url = '/public';
         req.user = null;
@@ -269,6 +272,7 @@ describe('A Seal', () => {
         next.calls.reset();
         
         req.user = { role: 'admin'};
+        delete req.scope;
         middleware(req, res, next);
         expect(req.scope).toBeUndefined();
         expect(next).toHaveBeenCalledTimes(1);
@@ -278,6 +282,7 @@ describe('A Seal', () => {
         req.url = '/secret';
         
         req.user = { role : 'foo' };
+        delete req.scope;
         middleware(req, res, next);
         expect(req.scope).toBeUndefined();
         expect(next).toHaveBeenCalledTimes(1);
@@ -285,10 +290,20 @@ describe('A Seal', () => {
         next.calls.reset();
 
         req.user = { role: 'admin'};
+        delete req.scope;
         middleware(req, res, next);
         expect(req.scope).toBe('SECRET_GETTER');
         expect(next).toHaveBeenCalledTimes(1);
         expect(next.calls.mostRecent().args.length).toBe(0);
+        next.calls.reset();
+
+        req.user = { role: 'nobody'};
+        delete req.scope;
+        middleware(req, res, next);
+        expect(req.scope).toBeUndefined();
+        expect(next).toHaveBeenCalledTimes(1);
+        expect(next.calls.mostRecent().args[0].status).toBe(401);
+        expect(next.calls.mostRecent().args[0].challenge).toBe(challenges.nobody);
         next.calls.reset();
     });
 });
