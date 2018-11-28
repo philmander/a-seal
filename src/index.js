@@ -143,7 +143,7 @@ class Acl {
                 }
                 return next();
             } else {
-                const err = new Error(`User "${req.user}" is not authorized to "${req.method}" to the resource "${urlPath}"`);
+                const err = new Error(`User "${user.role}" is not authorized to "${req.method}" to the resource "${urlPath}"`);
                 err.status = 403;
                 return next(err);
             }
