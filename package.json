@@ -1,6 +1,6 @@
 {
   "name": "a-seal",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Access Control Library (ACL)",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -37,7 +37,7 @@
     "vitest": "^1.0.4"
   },
   "peerDependencies": { 
-    "express": "> 4"
+    "express": ">=4"
   },
   "peerDependenciesMeta": {
     "express": {
