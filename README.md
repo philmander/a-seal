@@ -2,8 +2,6 @@
 
 Access Control List (ACL) library for Node.JS
 
-<img src="mark-spencer.jpg" width="500">
-
 ## Install
 ```
 npm install a-seal
@@ -20,17 +18,15 @@ A Seal creates a white-list of rules, so *isAllowed()* will return `false`, unle
 
 ```javascript
 
-// Create an acl instance
-const acl = require('a-seal')();
+// Get the acl instance
+import acl from './index.js'
 
 // Compose rules of a 'resource', 'actions' and 'roles' using...
 // `match`, `for` and `allow` respectively:
-acl.match('/protected-path').for('GET').allow('user', 'admin');
-acl.match(/^\/protected-path/).for('GET', 'POST').allow('admin');
+acl.match(/^\/protected-path$/).for(['GET', 'POST']).allow(['admin']);
 
 // Optionally label the rule with a "scope" using an `as` clause
-
-acl.match(/^\/protected-path/).for('GET', 'POST').allow('admin').as('PROTECTED_WRITE');
+acl.match(/^\/protected-path/).for(['GET', 'POST']).allow(['admin']).as('PROTECTED_WRITE');
 
 //use `isAllowed(role, resource, action)`...
 //to determine if a request is allowed to access the resource with a given action:
@@ -74,20 +70,18 @@ app.use((err, req, res) => {
 
 ### match(resource)
 
-Begins a matching context given a resource to match. If the resource is a string, an exact, case-sensitive 
-match is performed.
+Begins a matching context given a resource to match. 
 
 Returns: `object` (matchingContext)
 
 #### Params
 ##### resource
 
-Type: `string` | `RegExp`
+Type: `RegExp`
 
 #### Examples:
 
 ```javascript
-acl.match('/my-path') //exact string match
 acl.match(/^\/my-path/) //match with regex (starting with /my-path)
 ```
 
@@ -103,18 +97,17 @@ Returns `object` (matchingContext)
 #### Params
 ##### actions
 
-Type: `...string` | `Array`
+Type: `Array`
 
-A list of permitted actions as an array of strings or a list of strings as arguments.
+A list of permitted actions as an array of strings.
 
 #### Examples
 
 ```javascript
-acl.match('/my-path').for(['GET', 'POST' ]);
-acl.match('/my-path').for('GET', 'POST');
+acl.match('/my-path').for(['GET', 'POST']);
 
 //match any action
-acl.match('/my-path').for(acl.ANY);
+acl.match('/my-path').for([ANY]);
 ```
 
 ### matchingContext.allow(roles)
@@ -126,19 +119,17 @@ Returns: `object` (rule)
 #### Params
 ##### roles
 
-Type: `...string` | `Array`
+Type: `Array`
 
 A list of permitted roles as an array of strings or a list of strings as arguments.
 
 #### Examples
 
 ```javascript
-acl.match('/my-path').for('GET').allow([ 'user', 'anon' ]);
-acl.match('/my-path').for('GET').allow('user', 'anon');
-acl.match('/my-path').for('GET').allow(...myRoles);
+acl.match('/my-path').for(['GET']).allow([ 'user', 'anon' ]);
 
 //match any role
-acl.match('/public').for('GET').allow(acl.ANY);
+acl.match('/public').for(['GET']).allow(ANY);
 ```
 
 ### rule.as(scope)
@@ -154,7 +145,7 @@ Type: `string`
 #### Examples
 
 ```javascript
-acl.match('/my-path').for('POST').allow('user').as('user_create');
+acl.match('/my-path').for(['POST']).allow(['user']).as('user_create');
 ```
 
 ### isAllowed(role, resource, action)

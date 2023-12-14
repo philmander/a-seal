@@ -1,10 +1,12 @@
 {
   "name": "a-seal",
-  "version": "1.0.2",
+  "version": "2.1.0",
   "description": "Access Control Library (ACL)",
-  "main": "src/index.js",
+  "main": "build/index.js",
+  "type": "module",
   "scripts": {
-    "test": "node node_modules/jasmine/bin/jasmine src/*.spec.js"
+    "build": "tsc",
+    "test": "vitest --globals=true"
   },
   "repository": {
     "type": "git",
@@ -27,6 +29,18 @@
   },
   "homepage": "https://github.com/philmander/a-seal",
   "devDependencies": {
-    "jasmine": "^2.4.1"
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.4",
+    "jasmine": "^2.4.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
+  },
+  "peerDependencies": { 
+    "express": "> 4"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    }
   }
 }
