@@ -1,8 +1,9 @@
 {
   "name": "a-seal",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Access Control Library (ACL)",
   "main": "build/index.js",
+  "types": "build/index.d.ts",
   "type": "module",
   "scripts": {
     "build": "tsc",
