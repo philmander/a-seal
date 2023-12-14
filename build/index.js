@@ -61,16 +61,15 @@ export class Acl {
     middleware(opts) {
         return (req, res, next) => {
             const user = req.user || (opts && typeof opts.anon === 'string' ? { role: opts.anon } : ANON_USER);
-            const { pathname: urlPath } = new URL(req.url);
-            if (this.isAllowed(user.role, urlPath, req.method)) {
-                const rule = this.findRule(user.role, urlPath, req.method);
+            if (this.isAllowed(user.role, req.path, req.method)) {
+                const rule = this.findRule(user.role, req.path, req.method);
                 if (rule && rule.scope) {
                     req.scope = rule.scope;
                 }
                 return next();
             }
             else {
-                const err = new HttpError(`User "${user.role}" is not authorized to "${req.method}" to the resource "${urlPath}"`, 403);
+                const err = new HttpError(`User "${user.role}" is not authorized to "${req.method}" to the resource "${req.path}"`, 403);
                 return next(err);
             }
         };

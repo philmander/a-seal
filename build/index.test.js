@@ -117,7 +117,6 @@ describe('A Seal', () => {
         expect(allowed).toBe(true);
     });
     it('authorizes requests with middleware', () => {
-        const urlPrefix = 'https://foo.com';
         const req = {
             method: 'GET',
         };
@@ -126,7 +125,7 @@ describe('A Seal', () => {
         acl.match(/\/public/).for(['GET']).allow(['foo', 'admin']);
         acl.match(/\/secret/).for(['GET']).allow(['admin']).as('SECRET_GETTER');
         const middleware = acl.middleware({ anon: 'foo' });
-        req.url = `${urlPrefix}/public`;
+        req.path = `/public`;
         req.user = null;
         middleware(req, res, next);
         expect(req.scope).toBeUndefined();
@@ -139,7 +138,7 @@ describe('A Seal', () => {
         expect(next).toHaveBeenCalledTimes(1);
         expect(next.mock.lastCall.length).toBe(0);
         next.mockClear();
-        req.url = `${urlPrefix}/secret`;
+        req.path = `/secret`;
         req.user = { role: 'foo' };
         middleware(req, res, next);
         expect(req.scope).toBeUndefined();

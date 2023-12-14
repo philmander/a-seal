@@ -29,7 +29,6 @@ describe('A Seal', () => {
         expect(rule.actions).toEqual(['GET'])
         expect(rule.roles).toEqual(['user'])
         expect(rule.scope).toEqual('READ_FOO')
-
     })
 
     it('creates access control rules', () => {
@@ -170,7 +169,6 @@ describe('A Seal', () => {
     })
 
     it('authorizes requests with middleware', () => {
-        const urlPrefix = 'https://foo.com'
 
         const req: Record<string, any> = {
             method: 'GET',
@@ -184,7 +182,7 @@ describe('A Seal', () => {
 
         const middleware = acl.middleware({ anon: 'foo' })
 
-        req.url = `${urlPrefix}/public`
+        req.path = `/public`
         req.user = null
         middleware(req as AuthenticatedRequest, res as Response, next)
         expect(req.scope).toBeUndefined()
@@ -199,7 +197,7 @@ describe('A Seal', () => {
         expect(next.mock.lastCall.length).toBe(0)
         next.mockClear()
 
-        req.url = `${urlPrefix}/secret`
+        req.path = `/secret`
 
         req.user = { role: 'foo' }
         middleware(req as AuthenticatedRequest, res as Response, next)
