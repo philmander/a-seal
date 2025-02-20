@@ -199,7 +199,14 @@ describe('A Seal', () => {
 
         req.path = `/secret`
 
-        req.user = { role: 'foo' }
+        req.user = { role: 'foo' } // configured anon role
+        middleware(req as AuthenticatedRequest, res as Response, next)
+        expect(req.scope).toBeUndefined()
+        expect(next).toHaveBeenCalledTimes(1)
+        expect(next.mock.lastCall[0].status).toBe(401)
+        next.mockClear()
+
+        req.user = { role: 'foobar' } // not anon role
         middleware(req as AuthenticatedRequest, res as Response, next)
         expect(req.scope).toBeUndefined()
         expect(next).toHaveBeenCalledTimes(1)

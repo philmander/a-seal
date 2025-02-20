@@ -139,7 +139,13 @@ describe('A Seal', () => {
         expect(next.mock.lastCall.length).toBe(0);
         next.mockClear();
         req.path = `/secret`;
-        req.user = { role: 'foo' };
+        req.user = { role: 'foo' }; // configured anon role
+        middleware(req, res, next);
+        expect(req.scope).toBeUndefined();
+        expect(next).toHaveBeenCalledTimes(1);
+        expect(next.mock.lastCall[0].status).toBe(401);
+        next.mockClear();
+        req.user = { role: 'foobar' }; // not anon role
         middleware(req, res, next);
         expect(req.scope).toBeUndefined();
         expect(next).toHaveBeenCalledTimes(1);
